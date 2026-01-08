@@ -82,10 +82,11 @@ class GeminiSummarizer:
         except Exception as e:
             print(f"Selection failed: {e}. Defaulting to first 3.")
             selected_papers = papers[:3]
+            selected_indices = [0, 1, 2]
             
-        return self._create_summary_content(selected_papers)
+        return self._create_summary_content(selected_papers, papers, selected_indices)
 
-    def _create_summary_content(self, selected_papers: List[Dict]) -> str:
+    def _create_summary_content(self, selected_papers: List[Dict], all_papers: List[Dict], selected_indices: List[int]) -> str:
         summary_html = f"<h1>Daily AI Research Digest</h1><p>{datetime.now().strftime('%B %d, %Y')}</p><hr>"
         
         for paper in selected_papers:
@@ -120,6 +121,16 @@ class GeminiSummarizer:
                 summary_html += content
             except Exception as e:
                 print(f"Summary generation failed for {paper['title']}: {e}")
+        
+        import random
+        remaining_papers = [p for i, p in enumerate(all_papers) if i not in selected_indices]
+        bonus_papers = random.sample(remaining_papers, min(3, len(remaining_papers)))
+        
+        summary_html += "<hr><h2>📚 Read More Good Articles</h2>"
+        summary_html += "<ul style='line-height: 1.8;'>"
+        for paper in bonus_papers:
+            summary_html += f"<li><a href='{paper['url']}' style='color: #3498db;'>{paper['title']}</a></li>"
+        summary_html += "</ul>"
                 
         return summary_html
 
